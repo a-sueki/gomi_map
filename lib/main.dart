@@ -8,7 +8,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -50,8 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
       bearing: 192.8334901395799,
       target: LatLng(37.43296265331129, -122.08832357078792),
       tilt: 59.440717697143555,
-      zoom: 19.151926040649414
-  );
+      zoom: 19.151926040649414);
 
   @override
   Widget build(BuildContext context) {
@@ -60,16 +58,27 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: GoogleMap(
-        mapType: MapType.hybrid,
-        initialCameraPosition: _kGooglePlex,
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        }
-      ),
-      floatingActionButton: FloatingActionButton(
-          onPressed: _takePhoto,
-          tooltip: '撮影',
-          child: Icon(Icons.camera_alt),
+          mapType: MapType.normal,
+          initialCameraPosition: _kGooglePlex,
+          onMapCreated: (GoogleMapController controller) {
+            _controller.complete(controller);
+          }),
+      floatingActionButton: Center(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Container(
+              margin: EdgeInsets.only(left:30.0 ,bottom:10.0),
+              child: FloatingActionButton.extended(
+                onPressed: _takePhoto,
+                label: Text('ゴミみっけ'),
+                tooltip: '撮影',
+                icon: Icon(Icons.camera_alt),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
