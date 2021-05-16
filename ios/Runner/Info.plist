@@ -43,5 +43,9 @@
 	<false/>
 	<key>io.flutter.embedded_views_preview</key>
     <true/>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>location is required for this app</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>location is required for this app</string>
 </dict>
 </plist>
