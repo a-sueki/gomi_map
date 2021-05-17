@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   runApp(MyApp());
@@ -32,6 +34,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  File _image;
+  final picker = ImagePicker();
+
+  Future getImage() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.camera);
+
+    setState(() {
+      _image = image;
+    });
+  }
+
   LocationData currentLocation;
 
   // StreamSubscription<LocationData> locationSubscription;
@@ -69,12 +83,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _takePhoto() {
-    setState(() {
-      //TODO: 写真撮影
-    });
-  }
-
   Completer<GoogleMapController> _controller = Completer();
 
   @override
@@ -104,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Container(
                 margin: EdgeInsets.only(left: 30.0, bottom: 10.0),
                 child: FloatingActionButton.extended(
-                  onPressed: _takePhoto,
+                  onPressed: getImage,
                   label: Text('ゴミみっけ'),
                   tooltip: '撮影',
                   icon: Icon(Icons.camera_alt),

@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>カメラアクセスを許可</string>
+	<key>NSCameraUsageDescription</key>
+	<string>カメラアクセスを許可</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>カメラアクセスを許可</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -42,10 +48,10 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>io.flutter.embedded_views_preview</key>
-    <true/>
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>location is required for this app</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>location is required for this app</string>
+	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>location is required for this app</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>location is required for this app</string>
 </dict>
 </plist>
