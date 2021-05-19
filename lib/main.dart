@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:exif/exif.dart';
 
 void main() {
   runApp(MyApp());
@@ -43,8 +44,36 @@ class _MyHomePageState extends State<MyHomePage> {
 
     setState(() {
       _image = image;
+      print(_image.toString());
     });
   }
+
+  Future getLatLng(List<String> arguments) async {
+    for (final filename in arguments) {
+      print("read $filename ..");
+
+      final fileBytes = File(filename).readAsBytesSync();
+      final data = await readExifFromBytes(fileBytes);
+
+      if (data == null || data.isEmpty) {
+        return "No EXIF information found";
+      }
+
+      if (data.containsKey('JPEGThumbnail')) {
+        print('File has JPEG thumbnail');
+        data.remove('JPEGThumbnail');
+      }
+      if (data.containsKey('TIFFThumbnail')) {
+        print('File has TIFF thumbnail');
+        data.remove('TIFFThumbnail');
+      }
+
+      for (final entry in data.entries) {
+        print("${entry.key}: ${entry.value}");
+      }
+    }
+  }
+
 
   LocationData currentLocation;
 
