@@ -7,8 +7,11 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:exif/exif.dart';
+import 'package:camera/camera.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(MyApp());
 }
 
@@ -35,9 +38,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  List<CameraDescription> cameras;
+
+  CameraController _cameraController;
 
   File _image;
   final picker = ImagePicker();
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    super.dispose();
+  }
 
   Future getImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.camera);
@@ -46,6 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
       _image = image;
       print(_image.toString());
     });
+
+    Navigator.of(context).pop();
   }
 
   Future getLatLng(List<String> arguments) async {
@@ -74,7 +88,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-
   LocationData currentLocation;
 
   // StreamSubscription<LocationData> locationSubscription;
@@ -90,6 +103,17 @@ class _MyHomePageState extends State<MyHomePage> {
     _locationService.onLocationChanged.listen((LocationData result) async {
       setState(() {
         currentLocation = result;
+      });
+    });
+    Future(() async {
+      cameras = await availableCameras();
+
+      _cameraController = CameraController(cameras[0], ResolutionPreset.max);
+      _cameraController.initialize().then((_) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {});
       });
     });
   }
