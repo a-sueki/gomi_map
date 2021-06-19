@@ -8,14 +8,24 @@ import 'package:location/location.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:exif/exif.dart';
 import 'package:camera/camera.dart';
+import 'package:gomi_map/take_picture.dart';
 
+// 使用できるカメラのリストを取得
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  runApp(MyApp());
+  final cameras = await availableCameras();
+  //final firstCamera = cameras.first;
+  print(cameras);
+  runApp(
+    MaterialApp(theme: ThemeData.dark(), home: MyApp(cameras: cameras)),
+  );
 }
 
 class MyApp extends StatelessWidget {
+  final List<CameraDescription> cameras;
+
+  const MyApp({Key key, @required this.cameras}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -23,44 +33,26 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: MyHomePage(title: 'ゴミマップ'),
+      home: MyHomePage(title: 'ゴミマップ', cameras: cameras),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
+  final List<CameraDescription> cameras;
   final String title;
+
+  const MyHomePage({Key key, this.title, @required this.cameras})
+      : super(key: key);
+
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<CameraDescription> cameras;
-
-  CameraController _cameraController;
-
   File _image;
   final picker = ImagePicker();
-
-  @override
-  void dispose() {
-    _cameraController?.dispose();
-    super.dispose();
-  }
-
-  Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera);
-
-    setState(() {
-      _image = image;
-      print(_image.toString());
-    });
-
-    Navigator.of(context).pop();
-  }
 
   Future getLatLng(List<String> arguments) async {
     for (final filename in arguments) {
@@ -103,17 +95,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _locationService.onLocationChanged.listen((LocationData result) async {
       setState(() {
         currentLocation = result;
-      });
-    });
-    Future(() async {
-      cameras = await availableCameras();
-
-      _cameraController = CameraController(cameras[0], ResolutionPreset.max);
-      _cameraController.initialize().then((_) {
-        if (!mounted) {
-          return;
-        }
-        setState(() {});
       });
     });
   }
@@ -165,7 +146,12 @@ class _MyHomePageState extends State<MyHomePage> {
               Container(
                 margin: EdgeInsets.only(left: 30.0, bottom: 10.0),
                 child: FloatingActionButton.extended(
-                  onPressed: getImage,
+                  onPressed: () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) {
+                      return TakePictureScreen(camera: widget.cameras.first);
+                    }));
+                  },
                   label: Text('ゴミみっけ'),
                   tooltip: '撮影',
                   icon: Icon(Icons.camera_alt),
