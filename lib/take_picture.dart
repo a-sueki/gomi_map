@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 class TakePictureScreen extends StatefulWidget {
   final CameraDescription camera;
@@ -135,6 +136,7 @@ class DisplayPictureScreen extends StatelessWidget {
                   // ローカルに保存
                   await File(imagePath).writeAsBytes(await File(tmpImagePath).readAsBytes());
                   print('imagePath============= $imagePath');
+                  Provider.of<Data>(context, listen: false).setImgPath(imagePath);
 
                   //ふたつ前の画面に戻る
                   int count = 0;
@@ -144,6 +146,26 @@ class DisplayPictureScreen extends StatelessWidget {
               ))
             ])));
   }
+}
+
+class Data with ChangeNotifier {
+  //写真のローカルパス、のリスト
+  List<String> imgPathList = [];
+  String imgPath = '';
+
+  // imgPathをセットする
+  void setImgPath(path){
+    this.imgPath = path;
+    this.imgPathList.add(path);
+    notifyListeners(); // 全てのリスナーに自身を再構築するよう通知する
+  }
+
+  // imgPathListをセットする
+  void setList(list){
+    this.imgPathList = list;
+    notifyListeners(); // 全てのリスナーに自身を再構築するよう通知する
+  }
+
 }
 
 
