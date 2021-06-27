@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -44,6 +45,28 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     super.dispose();
   }
 
+  String _location = "no data";
+  Future<void> getLocation() async {
+    // 現在の位置を返す
+    Position position = await Geolocator.getCurrentPosition();
+    // 北緯がプラス。南緯がマイナス
+    print("緯度: " + position.latitude.toString());
+    // 東経がプラス、西経がマイナス
+    print("経度: " + position.longitude.toString());
+    // 高度
+    print("高度: " + position.altitude.toString());
+    // 距離をメートルで返す
+    double distanceInMeters =
+    Geolocator.distanceBetween(35.68, 139.76, -23.61, -46.40);
+    print(distanceInMeters);
+    // 方位を返す
+    double bearing = Geolocator.bearingBetween(35.68, 139.76, -23.61, -46.40);
+    print(bearing);
+    setState(() {
+      _location = position.toString();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,6 +103,9 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                       // 撮影
                       final image = await _controller.takePicture();
 
+                      // 現在地を取得
+                      await getLocation();
+
                       // ③画像を表示する画面に遷移
                       Navigator.push(
                         context,
@@ -88,6 +114,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                             // Pass the automatically generated path to
                             // the DisplayPictureScreen widget.
                             tmpImagePath: image.path,
+                            location : _location,
                           ),
                         ),
                       );
@@ -106,8 +133,9 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 // A widget that displays the picture taken by the user.
 class DisplayPictureScreen extends StatelessWidget {
   final String tmpImagePath;
+  final String location;
 
-  const DisplayPictureScreen({Key key, @required this.tmpImagePath})
+  const DisplayPictureScreen({Key key, @required this.tmpImagePath, this.location})
       : super(key: key);
 
   @override
@@ -136,7 +164,9 @@ class DisplayPictureScreen extends StatelessWidget {
                   // ローカルに保存
                   await File(imagePath).writeAsBytes(await File(tmpImagePath).readAsBytes());
                   print('imagePath============= $imagePath');
-                  Provider.of<Data>(context, listen: false).setImgPath(imagePath);
+
+                  // 変数を格納
+                  Provider.of<Data>(context, listen: false).setMappingData(imagePath,location);
 
                   //ふたつ前の画面に戻る
                   int count = 0;
@@ -149,22 +179,25 @@ class DisplayPictureScreen extends StatelessWidget {
 }
 
 class Data with ChangeNotifier {
-  //写真のローカルパス、のリスト
-  List<String> imgPathList = [];
+  List<Map> mappingDataList = [];
   String imgPath = '';
+  String location = '';
+  String id;
 
-  // imgPathをセットする
-  void setImgPath(path){
+  void setMappingData(path,location){
+
     this.imgPath = path;
-    this.imgPathList.add(path);
+    this.location = location;
+    this.id = 'test';
+
+    var mappingData = Map();
+    mappingData['loc'] = this.location;
+    mappingData['imgPath'] = this.imgPath;
+    this.mappingDataList.add(mappingData);
+
     notifyListeners(); // 全てのリスナーに自身を再構築するよう通知する
   }
 
-  // imgPathListをセットする
-  void setList(list){
-    this.imgPathList = list;
-    notifyListeners(); // 全てのリスナーに自身を再構築するよう通知する
-  }
 
 }
 

@@ -31,7 +31,6 @@ dependencies:
   google_maps_flutter: ^2.0.3
   location: ^3.0.0
   image_picker: ^0.6.2+3
-  exif: ^2.1.0
   camera: ^0.8.1
   path_provider: ^2.0.1
   path: ^1.8.0
@@ -54,9 +53,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+   - img/smile_pixel_art_emoticon_emoji_icon_189295.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

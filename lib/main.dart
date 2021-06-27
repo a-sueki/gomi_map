@@ -1,18 +1,15 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:exif/exif.dart';
 import 'package:camera/camera.dart';
 import 'package:gomi_map/take_picture.dart';
 import 'package:provider/provider.dart';
-
-import 'package:geolocator/geolocator.dart';
-
+import 'package:gomi_map/marker_generator.dart';
 
 // 使用できるカメラのリストを取得
 Future<void> main() async {
@@ -22,9 +19,10 @@ Future<void> main() async {
   print(cameras);
   runApp(
     // モデルオブジェクトに変更があると、リッスンしているWidget（配下の子Widget）を再構築する
-      ChangeNotifierProvider(
-        create: (context) => Data(),//モデルオブジェクトを作成する
-        child:MaterialApp(theme: ThemeData.dark(), home: MyApp(cameras: cameras))),
+    ChangeNotifierProvider(
+        create: (context) => Data(), //モデルオブジェクトを作成する
+        child: MaterialApp(
+            theme: ThemeData.dark(), home: MyApp(cameras: cameras))),
   );
 }
 
@@ -52,117 +50,13 @@ class MyHomePage extends StatefulWidget {
   const MyHomePage({Key key, this.title, @required this.cameras})
       : super(key: key);
 
-
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  File _image;
   final picker = ImagePicker();
-
-  // Future getLatLng(List<String> arguments) async {
-  //   for (final filename in arguments) {
-  //     print("read $filename ..");
-  //
-  //     final fileBytes = File(filename).readAsBytesSync();
-  //     final data = await readExifFromBytes(fileBytes);
-  //     final tags = await readExifFromBytes(await File(filename).readAsBytes());
-  //
-  //     if (data == null || data.isEmpty) {
-  //       return "No EXIF information found";
-  //     }
-  //
-  //     if (data.containsKey('JPEGThumbnail')) {
-  //       print('File has JPEG thumbnail');
-  //       data.remove('JPEGThumbnail');
-  //     }
-  //     if (data.containsKey('TIFFThumbnail')) {
-  //       print('File has TIFF thumbnail');
-  //       data.remove('TIFFThumbnail');
-  //     }
-  //
-  //     print('latitudeRef: ${tags['GPS GPSLatitudeRef']}');
-  //     print('latitude: ${tags['GPS GPSLatitude']}');
-  //     print('longitudeRef: ${tags['GPS GPSLongitudeRef']}');
-  //     print('longitude: ${tags['GPS GPSLongitude']}');
-  //
-  //     tags.forEach((key, value) {
-  //       print('$key --- $value');
-  //     });
-  //
-  //     // for (final entry in data.entries) {
-  //       // if (entry.key == 'MakerNote Tag 0x0023'){
-  //       //   print("${entry.value}");
-  //       // }
-  //       // print("${entry.key}: ${entry.value}");
-  //     // }
-  //   }
-  // }
-
-  String _location = "no data";
-  Future<void> getLocation() async {
-    // 現在の位置を返す
-    Position position = await Geolocator.getCurrentPosition();
-    // 北緯がプラス。南緯がマイナス
-    print("緯度: " + position.latitude.toString());
-    // 東経がプラス、西経がマイナス
-    print("経度: " + position.longitude.toString());
-    // 高度
-    print("高度: " + position.altitude.toString());
-    // 距離をメートルで返す
-    double distanceInMeters =
-    Geolocator.distanceBetween(35.68, 139.76, -23.61, -46.40);
-    print(distanceInMeters);
-    // 方位を返す
-    double bearing = Geolocator.bearingBetween(35.68, 139.76, -23.61, -46.40);
-    print(bearing);
-    setState(() {
-      _location = position.toString();
-    });
-  }
-
-  // Future<Position> _determinePosition() async {
-  //   bool serviceEnabled;
-  //   LocationPermission permission;
-  //
-  //   // Test if location services are enabled.
-  //   serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  //   if (!serviceEnabled) {
-  //     // Location services are not enabled don't continue
-  //     // accessing the position and request users of the
-  //     // App to enable the location services.
-  //     return Future.error('Location services are disabled.');
-  //   }
-  //
-  //   permission = await Geolocator.checkPermission();
-  //   if (permission == LocationPermission.denied) {
-  //     permission = await Geolocator.requestPermission();
-  //     if (permission == LocationPermission.denied) {
-  //       // Permissions are denied, next time you could try
-  //       // requesting permissions again (this is also where
-  //       // Android's shouldShowRequestPermissionRationale
-  //       // returned true. According to Android guidelines
-  //       // your App should show an explanatory UI now.
-  //       return Future.error('Location permissions are denied');
-  //     }
-  //   }
-  //
-  //   if (permission == LocationPermission.deniedForever) {
-  //     // Permissions are denied forever, handle appropriately.
-  //     return Future.error(
-  //         'Location permissions are permanently denied, we cannot request permissions.');
-  //   }
-  //
-  //   // When we reach here, permissions are granted and we can
-  //   // continue accessing the position of the device.
-  //   return await Geolocator.getCurrentPosition();
-  // }
-
-
   LocationData currentLocation;
-
-  // StreamSubscription<LocationData> locationSubscription;
 
   Location _locationService = new Location();
   String error;
@@ -177,6 +71,25 @@ class _MyHomePageState extends State<MyHomePage> {
         currentLocation = result;
       });
     });
+
+    List<Widget> markerWidgets = new List();
+    for (int i = 0; i < 1; i++) {
+      markerWidgets.add(
+        Container(
+          height: 50,
+          width: 50,
+          padding: EdgeInsets.all(10),
+          color: Colors.green,
+          child: Image.asset("img/smile_pixel_art_emoticon_emoji_icon_189295.png"),
+        ),
+      );
+    }
+
+    MarkerGenerator(markerWidgets, (bitmaps) {
+      setState(() {
+        mapBitmapsToMarkers(bitmaps);
+      });
+    }).generate(context);
   }
 
   void initPlatformState() async {
@@ -197,18 +110,37 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Completer<GoogleMapController> _controller = Completer();
+  // Completer<GoogleMapController> _googleMapsController = Completer();
+  final Completer<GoogleMapController> _googleMapController =
+      Completer<GoogleMapController>();
+
+  static const CameraPosition _initCameraPosition =
+      CameraPosition(target: LatLng(34.6870728, 135.0490244), zoom: 5.0);
+
+  GoogleMapController mapController;
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
+
+  List<Marker> customMarkers = [];
+
+  List<Marker> mapBitmapsToMarkers(List<Uint8List> bitmaps) {
+    bitmaps.asMap().forEach((mid, bmp) {
+      customMarkers.add(Marker(
+        markerId: MarkerId("$mid"),
+        position: LatLng(35.6809591, 139.7673068),
+        icon: BitmapDescriptor.fromBytes(bmp),
+      ));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    //テスト用
-    getLocation();
-
-    if(Provider.of<Data>(context, listen: false).imgPathList != null &&
-    Provider.of<Data>(context, listen: false).imgPathList.length != 0) {
+    if (Provider.of<Data>(context, listen: false).mappingDataList != null &&
+        Provider.of<Data>(context, listen: false).mappingDataList.length != 0) {
       // getLatLng(Provider.of<Data>(context, listen: false).imgPathList);
+      var data = Provider.of<Data>(context, listen: false);
     }
-
 
     if (currentLocation == null) {
       return Center(
@@ -219,19 +151,29 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Text(
             Provider.of<Data>(context, listen: false).imgPath != null
-                ? Provider.of<Data>(context, listen: false).imgPath : 'からぽ',
+                ? Provider.of<Data>(context, listen: false).imgPath
+                : 'からぽ',
           ),
           // title: Text(widget.title),
         ),
-        body:
-        GoogleMap(
-          mapType: MapType.normal,
-          initialCameraPosition: CameraPosition(
-            target: LatLng(currentLocation.latitude, currentLocation.longitude),
-            zoom: 17.0,
-          ),
+        body: GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: LatLng(currentLocation.latitude, currentLocation.longitude),
+              zoom: 17.0,
+            ),
+          markers: customMarkers.toSet(),
           myLocationEnabled: true,
+          onMapCreated: _onMapCreated,
         ),
+        // GoogleMap(
+        //   mapType: MapType.normal,
+        //   initialCameraPosition: CameraPosition(
+        //     target: LatLng(currentLocation.latitude, currentLocation.longitude),
+        //     zoom: 17.0,
+        //   ),
+        //   myLocationEnabled: true,
+        //   onMapCreated: _onMapCreated,
+        // ),
         floatingActionButton: Center(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
