@@ -191,9 +191,9 @@ class Data with ChangeNotifier {
     this.id = 'test';
 
     var mappingData = Map();
+
     mappingData['loc'] = this.location;
     mappingData['imgPath'] = this.imgPath;
-    this.mappingDataList.add(mappingData);
 
     notifyListeners(); // 全てのリスナーに自身を再構築するよう通知する
   }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -57,6 +58,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final picker = ImagePicker();
   LocationData currentLocation;
+  // List<Uint8List> markerIcon;
+  Uint8List markerIcon;
 
   Location _locationService = new Location();
   String error;
@@ -92,11 +95,21 @@ class _MyHomePageState extends State<MyHomePage> {
     }).generate(context);
   }
 
+  Future<Uint8List> getBytesFromAsset(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    Codec codec = await instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
+    FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ImageByteFormat.png)).buffer.asUint8List();
+  }
+
   void initPlatformState() async {
     LocationData myLocation;
+    // List<Uint8List> _markerIcon;
+    Uint8List _markerIcon;
     try {
       myLocation = await _locationService.getLocation();
       error = "";
+
     } on PlatformException catch (e) {
       if (e.code == 'PERMISSION_DENITED')
         error = 'Permission denited';
@@ -105,8 +118,17 @@ class _MyHomePageState extends State<MyHomePage> {
             'Permission denited - please ask the user to enable it from the app settings';
       myLocation = null;
     }
+
+    // _markerIcon[0] = await getBytesFromAsset('img/smile_pixel_art_emoticon_emoji_icon_189295.png', 100);
+    // _markerIcon[1] = await getBytesFromAsset('img/smile_pixel_art_emoticon_emoji_icon_189295.png', 100);
+    // _markerIcon[2] = await getBytesFromAsset('img/smile_pixel_art_emoticon_emoji_icon_189295.png', 100);
+    _markerIcon = await getBytesFromAsset('img/gomi1.png', 200);
+
+
     setState(() {
+      print('currentLocation.........$currentLocation');
       currentLocation = myLocation;
+      markerIcon = _markerIcon;
     });
   }
 
@@ -125,13 +147,28 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Marker> customMarkers = [];
 
   List<Marker> mapBitmapsToMarkers(List<Uint8List> bitmaps) {
-    bitmaps.asMap().forEach((mid, bmp) {
-      customMarkers.add(Marker(
-        markerId: MarkerId("$mid"),
-        position: LatLng(35.6809591, 139.7673068),
-        icon: BitmapDescriptor.fromBytes(bmp),
-      ));
-    });
+    // bitmaps.asMap().forEach((mid, bmp) {
+    //   customMarkers.add(Marker(
+    //     markerId: MarkerId("$mid"),
+    //     position: LatLng(35.6809591, 139.7673068),
+    //     icon: BitmapDescriptor.fromBytes(bmp),
+    //   ));
+    // });
+    customMarkers.add(Marker(
+      markerId: MarkerId("1"),
+      position: LatLng(37.787571077847666, -122.40369712328372),
+      icon: BitmapDescriptor.fromBytes(markerIcon),
+    ));
+    customMarkers.add(Marker(
+      markerId: MarkerId("2"),
+      position: LatLng(37.78795463554173, -122.40514211411937),
+      icon: BitmapDescriptor.fromBytes(markerIcon),
+    ));
+    customMarkers.add(Marker(
+      markerId: MarkerId("3"),
+      position: LatLng(37.786643219920165, -122.40484233040442),
+      icon: BitmapDescriptor.fromBytes(markerIcon),
+    ));
   }
 
   @override
@@ -149,12 +186,12 @@ class _MyHomePageState extends State<MyHomePage> {
     } else {
       return Scaffold(
         appBar: AppBar(
-          title: Text(
-            Provider.of<Data>(context, listen: false).imgPath != null
-                ? Provider.of<Data>(context, listen: false).imgPath
-                : 'からぽ',
-          ),
-          // title: Text(widget.title),
+          // title: Text(
+          //   Provider.of<Data>(context, listen: false).imgPath != null
+          //       ? Provider.of<Data>(context, listen: false).imgPath
+          //       : 'からぽ',
+          // ),
+          title: Text(widget.title),
         ),
         body: GoogleMap(
             initialCameraPosition: CameraPosition(
@@ -183,10 +220,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 margin: EdgeInsets.only(left: 30.0, bottom: 10.0),
                 child: FloatingActionButton.extended(
                   onPressed: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return TakePictureScreen(camera: widget.cameras.first);
-                    }));
+                    // Navigator.push(context,
+                    //     MaterialPageRoute(builder: (context) {
+                    //   return TakePictureScreen(camera: widget.cameras.first);
+                    // }));
+
+                    // カスタムマーカーのテスト用
+                    Provider.of<Data>(context, listen: false).setMappingData(
+                        "img/smile_pixel_art_emoticon_emoji_icon_189295.png",
+                        "35.6809591, 139.7673068");
                   },
                   label: Text('ゴミみっけ'),
                   tooltip: '撮影',
